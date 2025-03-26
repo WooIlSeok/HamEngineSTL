@@ -12,14 +12,13 @@ export namespace ham
     class FixedVector
     {
     public:
-        class Iterator
-        {
+        class Iterator {
         public:
             Iterator() : mPtr(nullptr) {}
             Iterator(T* ptr) : mPtr(ptr) {}
 
             T& operator*() { return *mPtr; }
-            const T& operator*() const { return static_cast<const T>(*mPtr); }
+            const T& operator*() const { return *mPtr; }
             T* operator->() { return mPtr; }
             const T* operator->() const { return mPtr; }
 
@@ -29,10 +28,10 @@ export namespace ham
             Iterator operator--(int) { Iterator temp = *this; --mPtr; return temp; }
             Iterator operator+(size_t idx) const { return Iterator(mPtr + idx); }
             Iterator operator-(size_t idx) const { return Iterator(mPtr - idx); }
-            ptrdiff_t operator-(const Iterator& iter) const { return (mPtr - iter.mPtr); }
+            ptrdiff_t operator-(const Iterator& iter) const { return mPtr - iter.mPtr; }
 
-            void operator+=(size_t idx) { mPtr + idx;}
-            void operator-=(size_t idx) { mPtr - idx;}
+            Iterator& operator+=(size_t idx) { mPtr += idx; return *this; }
+            Iterator& operator-=(size_t idx) { mPtr -= idx; return *this; }
             bool operator<(const Iterator& rhs) const { return mPtr < rhs.mPtr; }
             bool operator>(const Iterator& rhs) const { return mPtr > rhs.mPtr; }
             bool operator<=(const Iterator& rhs) const { return mPtr <= rhs.mPtr; }
@@ -163,10 +162,10 @@ namespace ham
         }
 
         ::new(&GetArray()[mSize]) T(std::move(GetArray()[mSize - 1]));
-        for (size_t i = mSize; i > (insertIdx); --i)
-        {
-            GetArray()[i] = std::move(GetArray()[i - 1]);
-        }
+
+        std::move_backward(GetArray() + insertIdx, GetArray() + mSize - 1, GetArray() + mSize);
+
+        GetArray()[insertIdx].~T();
         ::new(&GetArray()[insertIdx]) T(value);
         ++mSize;
 
@@ -179,13 +178,11 @@ namespace ham
         size_t eraseIdx = pos.mPtr - GetArray();
         ASSERT((eraseIdx >= 0) && (eraseIdx < mSize));
 
-        for (size_t i = eraseIdx; i < mSize - 1; ++i)
-        {
-            GetArray()[i] = std::move(GetArray()[i + 1]);
-        }
+        std::move(GetArray() + eraseIdx + 1, GetArray() + mSize, GetArray() + eraseIdx);
 
         GetArray()[mSize - 1].~T();
         --mSize;
+
         return Iterator(GetArray() + eraseIdx);
     }
 
@@ -195,20 +192,19 @@ namespace ham
         size_t startIdx = start.mPtr - GetArray();
         size_t endIdx = end.mPtr - GetArray();
         size_t numPull = mSize - (endIdx);
+        size_t numElementsToRemove = endIdx - startIdx;
+
         ASSERT(startIdx <= endIdx);
         ASSERT((startIdx >= 0) && (endIdx < mSize));
 
-        size_t i;
-        for (i = 0; i < numPull; ++i)
-        {
-            GetArray()[startIdx + i] = GetArray()[endIdx + i];
-        }
+        std::move(GetArray() + endIdx, GetArray() + mSize, GetArray() + startIdx);
 
-        for (; i < mSize; ++i)
+        for (size_t i = mSize - numElementsToRemove; i < mSize; ++i)
         {
-            GetArray()[startIdx + i].~T();
+            GetArray()[i].~T();
         }
-        mSize = mSize - (endIdx - startIdx);
+        mSize -= numElementsToRemove;
+
         return start;
     }
 
