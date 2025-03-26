@@ -9,3 +9,4 @@ export import HamSTL.Queue;
 export import HamSTL.Stack;
 export import HamSTL.String;
 export import HamSTL.Vector;
+export import HamSTL.FixedVector;
