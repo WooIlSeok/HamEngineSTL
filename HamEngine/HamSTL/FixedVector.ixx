@@ -44,7 +44,7 @@ export namespace ham
             friend class FixedVector<T, N>;
         };
 
-        FixedVector() noexcept : mSize(0) {}
+        FixedVector() : mSize(0) {}
         FixedVector(const FixedVector& other) : mSize(other.mSize)
         {
             for (size_t i = 0; i < mSize; ++i)
@@ -52,7 +52,7 @@ export namespace ham
                 ::new(&GetArray()[i]) T(other[i]);
             }
         }
-        FixedVector(FixedVector&& other) noexcept : mSize(other.mSize)
+        FixedVector(FixedVector&& other) : mSize(other.mSize)
         {
             for (size_t i = 0; i < mSize; ++i)
             {
