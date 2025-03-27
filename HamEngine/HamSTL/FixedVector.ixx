@@ -43,6 +43,7 @@ export namespace ham
             friend class FixedVector<T, N>;
         };
 
+        //Constructor//
         FixedVector() : mSize(0) {}
         FixedVector(const FixedVector& other) : mSize(other.mSize)
         {
@@ -86,6 +87,29 @@ export namespace ham
             }
             return *this;
         }
+        FixedVector& operator=(FixedVector&& other)
+        {
+            ASSERT(other.mSize <= N);
+            if (this != &other)
+            {
+                size_t commonSize = (mSize < other.mSize) ? mSize : other.mSize;
+                for (size_t i = 0; i < commonSize; ++i)
+                {
+                    GetArray()[i] = std::move(other[i]);
+                }
+                for (size_t i = other.mSize; i < mSize; ++i)
+                {
+                    GetArray()[i].~T();
+                }
+                for (size_t i = mSize; i < other.mSize; ++i)
+                {
+                    ::new(&GetArray()[i]) T(std::move(other[i]));
+                }
+                mSize = other.mSize;
+                other.mSize = 0;
+            }
+            return *this;
+        }
 
     private:
         size_t mSize;
@@ -97,35 +121,35 @@ export namespace ham
 
     public:
         // Element Access //
-        inline T& operator[](size_t idx) { ASSERT(idx < mSize); return GetArray()[idx]; }
-        inline const T& operator[](size_t idx) const { ASSERT(idx < mSize); return GetArray()[idx]; }
-        inline T& Front() { ASSERT(mSize > 0); return GetArray()[0]; }
-        inline T& Back() { ASSERT(mSize > 0); return GetArray()[mSize - 1]; }
+        constexpr T& operator[](size_t idx) { ASSERT(idx < mSize); return GetArray()[idx]; }
+        constexpr const T& operator[](size_t idx) const { ASSERT(idx < mSize); return GetArray()[idx]; }
+        constexpr T& Front() { ASSERT(mSize > 0); return GetArray()[0]; }
+        constexpr T& Back() { ASSERT(mSize > 0); return GetArray()[mSize - 1]; }
 
         // Iterator //
-        inline Iterator Begin() { return Iterator(GetArray()); }
-        inline Iterator End() { return Iterator(GetArray() + mSize); }
+        constexpr Iterator Begin() { return Iterator(GetArray()); }
+        constexpr Iterator End() { return Iterator(GetArray() + mSize); }
 
         // Info //
-        inline size_t Size() const { return mSize; }
-        inline size_t Capacity() const { return N; }
-        inline bool Empty() const { return mSize == 0; }
+        constexpr size_t Size() const { return mSize; }
+        constexpr size_t Capacity() const { return N; }
+        constexpr bool Empty() const { return mSize == 0; }
 
         // Modifiers //
-        void PushBack(const T& input);
-        void PushBack(T&& input);
-        void PopBack();
-        Iterator Insert(const Iterator pos, const T& value);
-        Iterator Erase(const Iterator pos);
-        Iterator Erase(const Iterator start, const Iterator end);
-        void clear();
+        constexpr void PushBack(const T& input);
+        constexpr void PushBack(T&& input);
+        constexpr void PopBack();
+        constexpr Iterator Insert(const Iterator pos, const T& value);
+        constexpr Iterator Erase(const Iterator pos);
+        constexpr Iterator Erase(const Iterator start, const Iterator end);
+        constexpr void clear();
     };
 }
 
 namespace ham
 {
     template <typename T, size_t N>
-    void FixedVector<T, N>::PushBack(const T& input)
+    constexpr void FixedVector<T, N>::PushBack(const T& input)
     {
         ASSERT(mSize < N);
         ::new(&GetArray()[mSize]) T(input);
@@ -133,7 +157,7 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    void FixedVector<T, N>::PushBack(T&& input)
+    constexpr void FixedVector<T, N>::PushBack(T&& input)
     {
         ASSERT(mSize < N);
         ::new(&GetArray()[mSize]) T(std::move(input));
@@ -141,7 +165,7 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    void FixedVector<T, N>::PopBack()
+    constexpr void FixedVector<T, N>::PopBack()
     {
         ASSERT(mSize > 0);
         --mSize;
@@ -149,10 +173,11 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    FixedVector<T, N>::Iterator FixedVector<T, N>::Insert(const Iterator pos, const T& value)
+    constexpr FixedVector<T, N>::Iterator FixedVector<T, N>::Insert(const Iterator pos, const T& value)
     {
+        ASSERT(pos.mPtr >= GetArray());
         size_t insertIdx = pos.mPtr - GetArray();
-        ASSERT((insertIdx >= 0) && ((insertIdx) <= mSize));
+        ASSERT(insertIdx <= mSize);
         ASSERT(mSize < N);
 
         if ((insertIdx) == mSize)
@@ -173,10 +198,11 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    FixedVector<T, N>::Iterator FixedVector<T, N>::Erase(const Iterator pos)
+    constexpr FixedVector<T, N>::Iterator FixedVector<T, N>::Erase(const Iterator pos)
     {
         size_t eraseIdx = pos.mPtr - GetArray();
-        ASSERT((eraseIdx >= 0) && (eraseIdx < mSize));
+        ASSERT(pos.mPtr >= GetArray());
+        ASSERT(eraseIdx < mSize);
 
         std::move(GetArray() + eraseIdx + 1, GetArray() + mSize, GetArray() + eraseIdx);
 
@@ -187,7 +213,7 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    FixedVector<T, N>::Iterator FixedVector<T, N>::Erase(const Iterator start, const Iterator end)
+    constexpr FixedVector<T, N>::Iterator FixedVector<T, N>::Erase(const Iterator start, const Iterator end)
     {
         size_t startIdx = start.mPtr - GetArray();
         size_t endIdx = end.mPtr - GetArray();
@@ -195,7 +221,7 @@ namespace ham
         size_t numElementsToRemove = endIdx - startIdx;
 
         ASSERT(startIdx <= endIdx);
-        ASSERT((startIdx >= 0) && (endIdx < mSize));
+        ASSERT((startIdx >= 0) && (endIdx <= mSize));
 
         std::move(GetArray() + endIdx, GetArray() + mSize, GetArray() + startIdx);
 
@@ -209,7 +235,7 @@ namespace ham
     }
 
     template <typename T, size_t N>
-    void FixedVector<T, N>::clear()
+    constexpr void FixedVector<T, N>::clear()
     {
         for (size_t i = 0; i < mSize; ++i)
         {
