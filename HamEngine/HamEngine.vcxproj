@@ -78,6 +78,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
+    <IntDir>.\x64\Debug</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -176,6 +177,7 @@
     <ClCompile Include="HamEngine\Component\2D\Transform2D.ixx" />
     <ClCompile Include="HamEngine\GameObject.ixx" />
     <ClCompile Include="HamSTL\Array.ixx" />
+    <ClCompile Include="HamSTL\FixedQueue.ixx" />
     <ClCompile Include="HamSTL\FixedVector.ixx" />
     <ClCompile Include="HamSTL\HamSTL.ixx" />
     <ClCompile Include="HamSTL\HashMap.ixx" />
