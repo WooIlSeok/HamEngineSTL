@@ -37,5 +37,6 @@
     <ClCompile Include="HamEngine\Component\2D\Transform2D.ixx" />
     <ClCompile Include="HamSTL\FixedVector.ixx" />
     <ClCompile Include="HamSTL\FixedQueue.ixx" />
+    <ClCompile Include="HamSTL\FixedStack.ixx" />
   </ItemGroup>
 </Project>

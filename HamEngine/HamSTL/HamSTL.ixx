@@ -11,3 +11,4 @@ export import HamSTL.String;
 export import HamSTL.Vector;
 export import HamSTL.FixedVector;
 export import HamSTL.FixedQueue;
+export import HamSTL.FixedStack;

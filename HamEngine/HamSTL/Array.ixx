@@ -12,37 +12,9 @@ export namespace ham
     class Array
     {
     public:
-        class Iterator
-        {
-        public:
-            Iterator() : mPtr(nullptr) {}
-            Iterator(T* ptr) : mPtr(ptr) {}
 
-            T& operator*() { return *mPtr; }
-            const T& operator*() const { return *mPtr; }
-            T* operator->() { return mPtr; }
-            const T* operator->() const { return mPtr; }
-
-            Iterator& operator++() { ++mPtr; return *this; }
-            Iterator operator++(int) { Iterator temp = *this; ++mPtr; return temp; }
-            Iterator& operator--() { --mPtr; return *this; }
-            Iterator operator--(int) { Iterator temp = *this; --mPtr; return temp; }
-            Iterator operator+(size_t idx) const { return Iterator(mPtr + idx); }
-            Iterator operator-(size_t idx) const { return Iterator(mPtr - idx); }
-            ptrdiff_t operator-(const Iterator& iter) const { return (mPtr - iter.mPtr); }
-
-            Iterator& operator+=(size_t idx) { mPtr += idx; return *this; }
-            Iterator& operator-=(size_t idx) { mPtr -= idx; return *this; }
-            bool operator<(const Iterator& rhs) const { return mPtr < rhs.mPtr; }
-            bool operator>(const Iterator& rhs) const { return mPtr > rhs.mPtr; }
-            bool operator<=(const Iterator& rhs) const { return mPtr <= rhs.mPtr; }
-            bool operator>=(const Iterator& rhs) const { return mPtr >= rhs.mPtr; }
-            bool operator==(const Iterator& rhs) const { return mPtr == rhs.mPtr; }
-            bool operator!=(const Iterator& rhs) const { return mPtr != rhs.mPtr; }
-        private:
-            T* mPtr;
-            friend class Array<T, N>;
-        };
+        using iterator = T*;
+        using constIterator = const T*;
 
         constexpr Array() = default;
         constexpr Array(const Array& other)
@@ -80,14 +52,12 @@ export namespace ham
         constexpr const T& operator[](size_t idx) const { ASSERT(idx < N); return mArray[idx]; }
         constexpr T& Front() { return mArray[0]; }
         constexpr T& Back() { return mArray[N-1]; }
-        constexpr T* Data() { return mArray; }
-        constexpr const T* Data() const { return mArray; }
 
         // Iterator //
-        constexpr Iterator Begin() { return Iterator(mArray); }
-        constexpr Iterator End() { return Iterator(mArray + N); }
-        constexpr const Iterator Begin() const { return Iterator(const_cast<T*>(mArray)); }
-        constexpr const Iterator End() const { return Iterator(const_cast<T*>(mArray + N)); }
+        constexpr iterator Begin() { return mArray; }
+        constexpr iterator End() { return mArray + N; }
+        constexpr constIterator Begin() const { return mArray; }
+        constexpr constIterator End() const { return mArray + N; }
 
         // Info //
         constexpr size_t Size() const { return N; }
@@ -95,7 +65,7 @@ export namespace ham
         //operator//
         bool operator==(const Array& rhs) const 
         { 
-            Iterator lhsIter = this->Begin(), rhsIter = rhs.Begin(); 
+            T* lhsIter = this->Begin(), rhsIter = rhs.Begin(); 
             for (; lhsIter < this->End(); ++lhsIter, ++rhsIter)
             {
                 if (*lhsIter != *rhsIter)
@@ -106,7 +76,7 @@ export namespace ham
         bool operator!=(const Array& rhs) const { return (*this == rhs) == false; }
         bool operator<(const Array& rhs) const 
         { 
-            Iterator lhsIter = this->Begin(), rhsIter = rhs.Begin();
+            T* lhsIter = this->Begin(), rhsIter = rhs.Begin();
             for (; lhsIter < this->End(); ++lhsIter, ++rhsIter)
             {
                 if (*lhsIter < *rhsIter)
